@@ -1,0 +1,298 @@
+
+openapi: 3.0.3
+info:
+  title: DTU Pay REST API
+  description: >
+    DTU Pay is a microservice-based mobile payment system that enables customers
+    to pay merchants using anonymous, one-time tokens.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /customers:
+    post:
+      summary: Register Customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRegistrationRequest'
+      responses:
+        '201':
+          description: Customer registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '400':
+          description: Invalid registration data
+        '409':
+          description: Customer already exists
+
+  /customers/{customerId}:
+    delete:
+      summary: Deregister Customer
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer deregistered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '404':
+          description: Customer not found
+
+  /customers/{customerId}/tokens:
+    post:
+      summary: Request Payment Tokens
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '201':
+          description: Tokens generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Business rule violation
+
+  /customers/{customerId}/report:
+    get:
+      summary: Get Customer Payment Report
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerReport'
+        '500':
+          description: Failed to retrieve report
+
+  /merchants:
+    post:
+      summary: Register Merchant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantRegistrationRequest'
+      responses:
+        '201':
+          description: Merchant registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantResponse'
+        '400':
+          description: Invalid registration data
+
+  /merchants/{merchantId}:
+    delete:
+      summary: Deregister Merchant
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Merchant deregistered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantResponse'
+        '404':
+          description: Merchant not found
+
+  /merchants/{merchantId}/payments:
+    post:
+      summary: Process Payment
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Payment failed
+
+  /merchants/{merchantId}/report:
+    get:
+      summary: Get Merchant Payment Report
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Merchant report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantReport'
+        '500':
+          description: Failed to retrieve report
+
+  /manager/report:
+    get:
+      summary: Get System Payment Report
+      responses:
+        '200':
+          description: System report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemReport'
+        '500':
+          description: Failed to retrieve report
+
+components:
+  schemas:
+    CustomerRegistrationRequest:
+      type: object
+      required: [firstName, lastName, cpr, bankAccountNumber]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        cpr: { type: string }
+        bankAccountNumber: { type: string }
+
+    MerchantRegistrationRequest:
+      type: object
+      required: [firstName, lastName, cpr, bankAccountNumber]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        cpr: { type: string }
+        bankAccountNumber: { type: string }
+
+    TokenRequest:
+      type: object
+      required: [tokenCount]
+      properties:
+        tokenCount:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    PaymentRequest:
+      type: object
+      required: [token, amount]
+      properties:
+        token: { type: string }
+        amount: { type: number, format: double }
+        description: { type: string }
+
+    CustomerResponse:
+      type: object
+      properties:
+        customerId: { type: string, format: uuid }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }
+
+    MerchantResponse:
+      type: object
+      properties:
+        merchantId: { type: string, format: uuid }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }
+
+    TokenResponse:
+      type: object
+      properties:
+        tokens:
+          type: array
+          items: { type: string, format: uuid }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }
+
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId: { type: string, format: uuid }
+        amount: { type: number, format: double }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }
+
+    Payment:
+      type: object
+      properties:
+        paymentId: { type: string, format: uuid }
+        customerId: { type: string, format: uuid }
+        merchantId: { type: string, format: uuid }
+        amount: { type: number, format: double }
+        description: { type: string }
+        timestamp: { type: string, format: date-time }
+
+    CustomerReport:
+      type: object
+      properties:
+        customerId: { type: string }
+        payments:
+          type: array
+          items: { $ref: '#/components/schemas/Payment' }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }
+
+    MerchantReport:
+      type: object
+      properties:
+        merchantId: { type: string }
+        payments:
+          type: array
+          items: { $ref: '#/components/schemas/Payment' }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }
+
+    SystemReport:
+      type: object
+      properties:
+        payments:
+          type: array
+          items: { $ref: '#/components/schemas/Payment' }
+        totalAmount: { type: number, format: double }
+        success: { type: boolean }
+        errorMessage: { type: string, nullable: true }

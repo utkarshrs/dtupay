@@ -1,0 +1,92 @@
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dtupay-network
+
+  account-service:
+    build:
+      context: .
+      dockerfile: account-service/Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dtupay-network
+
+  token-service:
+    build:
+      context: .
+      dockerfile: token-service/Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dtupay-network
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dtupay-network
+
+  report-service:
+    build:
+      context: .
+      dockerfile: report-service/Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dtupay-network
+
+  facade:
+    build:
+      context: .
+      dockerfile: facade/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      QUARKUS_HTTP_HOST: 0.0.0.0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+      token-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+      report-service:
+        condition: service_started
+    networks:
+      - dtupay-network
+
+networks:
+  dtupay-network:
+    driver: bridge
