@@ -28,22 +28,3 @@ group8-dtupay/
 ├── InstallationGuide.md         # Full installation & troubleshooting guide
 └── README.md                    # You are here
 
-
-## Course Information
-
-- Course: **02267 – Web Services**
-- Institution: **Technical University of Denmark (DTU)**
-
----
-
-## Authors
-
-| Name                     | Student ID | Email                    |
-| ------------------------ | ---------- | ------------------------ |
-| Abinav Reddy Aleti       | s224786    | [s224786@student.dtu.dk] |
-| Deniz Isikli             | s215818    | [s215818@student.dtu.dk] |
-| Krish Devendra Waghresha | s252788    | [s252788@student.dtu.dk] |
-| Parth Mangalkar          | s252576    | [s252576@student.dtu.dk] |
-| Utkarsh Rupesh Saner     | s252680    | [s252680@student.dtu.dk] |
-| Vaibhav Anil Nagwani     | s242572    | [s242572@student.dtu.dk] |
-| Vaibhav Bahel            | s252654    | [s252654@student.dtu.dk] |
